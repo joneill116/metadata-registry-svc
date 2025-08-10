@@ -1,0 +1,2 @@
+### Example HTTP request for health check
+GET http://localhost:8000/healthz

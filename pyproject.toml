@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "metadata-registry-svc"
+version = "0.1.0"
+description = "Metadata registry service for distributed workflow platform."
+authors = ["Your Name <your.email@example.com>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+fastapi = "^0.110.0"
+pydantic = "^2.7.0"
+uvicorn = {extras = ["standard"], version = "^0.29.0"}
+
+[tool.poetry.dev-dependencies]
+pytest = "^8.2.0"
+black = "^24.4.0"
+flake8 = "^7.0.0"
+isort = "^5.13.0"
+pre-commit = "^3.7.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

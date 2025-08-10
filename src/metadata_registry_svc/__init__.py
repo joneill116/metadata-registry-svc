@@ -1,0 +1,1 @@
+"""Metadata Registry Service package."""
