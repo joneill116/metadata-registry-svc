@@ -1,62 +1,84 @@
+
 # Metadata Registry Service Architecture
 
-This document describes the architecture, design principles, and integration patterns of the Metadata Registry Service. The service is designed for extensibility, clarity, and reliability, serving as the single source of truth for all metadata schemas and definitions in the platform.
+This document describes the architecture, design principles, and integration patterns of the Metadata Registry Service—a world-class, extensible, and standards-based platform for managing metamodels, metadata, and semantic relationships.
 
 ## High-Level Overview
 
-- **Purpose:** Central registry for all metadata schemas, definitions, and contracts.
-- **Design:** Modular, event-driven, and integration-ready.
-- **Principles:** Single source of truth, separation of concerns, testability, and extensibility.
+- **Purpose:** Central registry for all metamodels (workflows, components, expectations, protocols, solutions) and their instances.
+- **Design:** JSON-LD native, modular, event-driven, and integration-ready.
+- **Principles:** Single source of truth, semantic interoperability, versioning, extensibility, and governance.
 
-## Service Relationship Diagram
 
-## Service Relationship Diagram
+## Platform Relationship Diagram
 
 ```
-				+--------------------------+
-				|  metadata-registry-svc   |
-				|  (schemas, definitions)  |
-				+-----------+--------------+
-						^
-						|
-	  +---------------------------+---------------------------+
-	  |                           |                           |
-	  |                           |                           |
-  +-----+-----+             +-------+-------+           +-------+-------+
-  | component |             | expectation   |           | protocol      |
-  | registry  |             | registry      |           | registry      |
-  |   svc     |             |   svc         |           |   svc         |
-  +-----+-----+             +-------+-------+           +-------+-------+
-	  |                           |                           |
-	  |                           |                           |
-	  v                           v                           v
-   (references schemas,      (references schemas,         (references schemas,
-    contracts, types)         rules, types)                message formats)
+┌──────────────────────────────┐
+│   Domain Library (Metamodels)│
+└─────────────┬────────────────┘
+			  │
+			  ▼
+┌──────────────────────────────┐
+│ Metadata Registry Service    │
+│  - Registers & validates     │
+│  - Exposes API for CRUD      │
+│  - Links all concepts        │
+└─────────────┬────────────────┘
+			  │
+			  ▼
+┌──────────────────────────────┐
+│  Downstream Solutions        │
+│  (e.g., Portfolio Mgmt)      │
+└─────────────┬────────────────┘
+			  │
+			  ▼
+┌──────────────────────────────┐
+│  Workflow/Component Instances│
+└──────────────────────────────┘
 ```
-
 
 **Legend:**
-- All domain registries reference schemas/definitions in the metadata-registry-svc.
-- metadata-registry-svc is the single source of truth for all metadata.
-- Each registry (component, expectation, protocol) is decoupled and can evolve independently, but all depend on the metadata-registry-svc for schema validation and discovery.
+- All solutions, workflows, and components reference metamodels in the metadata-registry-svc.
+- The registry is the single source of truth for all metadata, relationships, and governance.
+- The platform is designed for extensibility, semantic queries, and business alignment.
+
 
 ## Key Components
 
-- **metadata-registry-svc:**
-	- Stores and versions all metadata schemas and definitions.
-	- Provides REST API for CRUD, versioning, and deprecation.
-	- Emits events for registry changes (future extension).
-- **Domain registries (component, expectation, protocol):**
-	- Reference and validate against schemas in metadata-registry-svc.
-	- Implement domain-specific logic and workflows.
+- **Domain Library:**
+	- Defines all metamodels (workflows, components, expectations, protocols, solutions).
+	- Published as a Python package for validation and extensibility.
+- **Metadata Registry Service:**
+	- Stores, versions, and validates all metamodels and metadata.
+	- Provides REST API for CRUD, versioning, deprecation, and discovery.
+	- Supports JSON-LD and linked data for semantic interoperability.
+	- Designed for integration with triple stores and knowledge graphs.
+- **Downstream Solutions:**
+	- Portfolio management, risk, compliance, and other business solutions consume and orchestrate workflows via the registry.
+- **Workflow/Component Instances:**
+	- Concrete executions/configurations, always linked to their metamodels for validation and governance.
+
 
 ## Design Principles
 
-- **Modularity:** All core logic is separated from adapters and integrations for testability and maintainability.
+- **Semantic & Standards-Based:** JSON-LD, UUIDs, and linked data for maximum interoperability.
+- **Modularity:** Core logic is separated from adapters and integrations for testability and maintainability.
 - **Event-Driven:** Designed to emit and consume events for registry changes and integrations (future-proof).
-- **Extensibility:** New schema types and registry domains can be added with minimal changes.
+- **Extensibility:** New metamodels, domains, and relationships can be added with minimal changes.
+- **Versioning & Evolution:** All metamodels and metadata are versioned and can be deprecated or migrated.
+- **Governance:** Tags, owner, and audit fields for compliance and traceability.
 - **Observability:** Logging, metrics, and health endpoints are built-in for production readiness.
-- **Governance:** Versioning, soft deletion, and auditability are first-class features.
+
+## Extending the Platform
+
+- **Add new metamodels:** Extend the domain library and register new types via the API.
+- **Create templates:** Register workflow templates with recommended components, expectations, and protocols.
+- **Instance management:** Users create workflow/component instances by selecting templates and customizing configs.
+- **Integrate with triple store:** Export or sync all metadata to a triple store for SPARQL queries and knowledge graph analytics.
+- **Build solutions:** Compose business solutions (e.g., portfolio management) as orchestrations of workflows and components.
+
+---
+*This architecture is designed for world-class engineers, designers, and ontologists who demand clarity, flexibility, and future-proof data and workflow management.*
 
 ## Integration Points
 
