@@ -3,6 +3,27 @@ from uuid import UUID
 from copy import deepcopy
 import logging
 from .models import MetadataDocument
+from domain_repository.operational.workflow import Workflow
+from domain_repository.operational.component import Component
+from domain_repository.operational.protocol import Protocol
+from domain_repository.operational.expectation import Expectation
+
+
+def validate_against_metamodel(doc: MetadataDocument):
+    """
+    Validate the data field of a MetadataDocument against the correct metamodel.
+    Raises ValueError if validation fails.
+    """
+    if doc.type == "WorkflowSchema":
+        Workflow(**doc.data)
+    elif doc.type == "ComponentSchema":
+        Component(**doc.data)
+    elif doc.type == "ProtocolSchema":
+        Protocol(**doc.data)
+    elif doc.type == "ExpectationSchema":
+        Expectation(**doc.data)
+    # Add more as needed
+
 from datetime import datetime, timezone
 
 
@@ -33,6 +54,12 @@ def register_metadata(doc: MetadataDocument) -> MetadataDocument:
     Raises:
         ValueError: If a document with the same ID already exists.
     """
+    # Validate against metamodel before registering
+    try:
+        validate_against_metamodel(doc)
+    except Exception as e:
+        logger.error(f"Metamodel validation failed: {e}")
+        raise MetadataRegistryError(f"Metamodel validation failed: {e}")
     if doc.id in _metadata_store:
         logger.warning(f"Attempt to register duplicate metadata ID: {doc.id}")
         raise MetadataRegistryError("Metadata with this ID already exists.")
@@ -95,6 +122,12 @@ def update_metadata(metadata_id: UUID, update: dict) -> MetadataDocument:
         "updated_at": datetime.now(timezone.utc),
     }
     updated_doc = doc.model_copy(update=update_with_created, deep=True)
+    # Validate against metamodel before updating
+    try:
+        validate_against_metamodel(updated_doc)
+    except Exception as e:
+        logger.error(f"Metamodel validation failed on update: {e}")
+        raise MetadataRegistryError(f"Metamodel validation failed on update: {e}")
     updated_doc.version += 1
     _metadata_store[metadata_id] = updated_doc
     _metadata_versions[metadata_id].append(deepcopy(updated_doc))

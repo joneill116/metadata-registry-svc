@@ -1,3 +1,9 @@
+from domain_repository.operational.workflow import Workflow
+from domain_repository.operational.component import Component
+from domain_repository.operational.protocol import Protocol
+from domain_repository.operational.expectation import Expectation
+
+
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Literal
 from uuid import UUID, uuid4
