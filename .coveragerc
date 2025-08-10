@@ -1,0 +1,11 @@
+[run]
+branch = True
+source = src/metadata_registry_svc
+omit =
+    */__init__.py
+    */main.py
+
+[report]
+show_missing = True
+skip_covered = True
+fail_under = 100
