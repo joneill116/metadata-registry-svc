@@ -1,7 +1,7 @@
 
 # Metadata Registry Service API Reference
 
-This document provides a comprehensive overview of the REST API for the Metadata Registry Service.
+This document provides a comprehensive overview of the REST API for the Metadata Registry Service, now supporting polymorphic metamodels and type-safe relationships.
 All endpoints are JSON-based and follow RESTful conventions. Authentication and rate limiting are stubbed for future implementation.
 
 ## Base URL
@@ -12,38 +12,97 @@ https://<your-domain>/
 
 ## Endpoints
 
-### Register Metadata
+### Register Metadata (Polymorphic)
 
 **POST** `/metadata`
 
-Registers a new metadata document.
+Registers a new metadata document (workflow, component, expectation, protocol, etc.) using the polymorphic registry.
 
-**Request Body Example:**
+
+**Request Body Example (with ontology/semantic features, relationship-centric):**
 ```json
 {
 	"@type": "ComponentSchema",
 	"@context": {"@vocab": "http://example.com/"},
-	"data": {"foo": "bar"},
+	"data": {
+		"name": "Acquisition"
+	},
 	"owner": "alice",
-	"tags": ["tag1", "tag2"]
+	"tags": ["tag1", "tag2"],
+	"semantic_tags": ["acquisition", "data"],
+	"ontology_mappings": {"skos:broader": "https://schema.org/Action"},
+	"external_references": ["https://schema.org/Action"],
+	"constraints": [],
+	"parent_id": null
+}
+```
+
+**Response Example (with ontology/semantic features, relationship-centric):**
+```json
+{
+	"id": "<uuid>",
+	"@type": "ComponentSchema",
+	"@context": {"@vocab": "http://example.com/"},
+	"data": {
+		"name": "Acquisition"
+	},
+	"owner": "alice",
+	"tags": ["tag1", "tag2"],
+	"semantic_tags": ["acquisition", "data"],
+	"ontology_mappings": {"skos:broader": "https://schema.org/Action"},
+	"external_references": ["https://schema.org/Action"],
+	"constraints": [],
+	"parent_id": null
+}
+```
+	"created_at": "2025-08-10T12:00:00Z",
+	"updated_at": "2025-08-10T12:00:00Z",
+	"is_deprecated": false
+}
+```
+
+---
+
+### Register Relationship (Explicit)
+
+**POST** `/relationships`
+
+Registers an explicit relationship between two metamodels (e.g., workflow contains component, component implements protocol, etc.).
+
+**Request Body Example:**
+```json
+{
+	"source_id": "<workflow-uuid>",
+	"target_id": "<component-uuid>",
+	"relationship_type": "contains",
+	"metadata": {"added_via": "service"}
 }
 ```
 
 **Response Example:**
 ```json
 {
-	"id": "<uuid>",
-	"@type": "ComponentSchema",
-	"@context": {"@vocab": "http://example.com/"},
-	"data": {"foo": "bar"},
-	"owner": "alice",
-	"tags": ["tag1", "tag2"],
-	"version": 1,
-	"created_at": "2025-08-10T12:00:00Z",
-	"updated_at": "2025-08-10T12:00:00Z",
-	"is_deprecated": false
+	"id": "<relationship-uuid>",
+	"source_id": "<workflow-uuid>",
+	"target_id": "<component-uuid>",
+	"relationship_type": "contains",
+	"metadata": {"added_via": "service"}
 }
 ```
+---
+## Best Practices & Migration Note
+- All entity connections are managed via explicit Relationship objects—never direct fields.
+- Ontology/semantic fields and provenance are present and first-class.
+- SHACL/OWL constraints are supported for advanced validation.
+- All JSON-LD and API payloads reflect the decoupled, relationship-centric model.
+- If upgrading from a previous version, remove all direct reference fields (e.g., `component_ids`, `protocol_id`, `expectation_id`) from your code and use explicit relationships instead.
+
+## Validation Checklist (World-Class Ontology Review)
+- [x] All entity connections are explicit relationships
+- [x] Ontology/semantic fields and provenance are present
+- [x] SHACL/OWL constraints supported
+- [x] JSON-LD serialization for all entities and relationships
+- [x] Registry and relationship manager are central to all operations
 
 ---
 
@@ -59,6 +118,7 @@ Retrieves a metadata document by its UUID.
 	"id": "<uuid>",
 	"@type": "ComponentSchema",
 	"@context": {"@vocab": "http://example.com/"},
+	"data": { ... }
 }
 ```
 
@@ -82,6 +142,26 @@ Lists metadata documents. Supports filtering by type, owner, tags, and paginatio
 ```json
 [
 	{ "id": "<uuid>", "@type": "ComponentSchema", ... },
+]
+```
+
+---
+
+### List Relationships
+
+**GET** `/relationships`
+
+Lists all explicit relationships between metamodels. Supports filtering by type, source, or target.
+
+**Query Parameters:**
+- `relationship_type` (optional): Filter by relationship type
+- `source_id` (optional): Filter by source entity
+- `target_id` (optional): Filter by target entity
+
+**Response Example:**
+```json
+[
+	{ "id": "<relationship-uuid>", "source_id": "<workflow-uuid>", "target_id": "<component-uuid>", "relationship_type": "contains" },
 ]
 ```
 

@@ -15,13 +15,14 @@ ALLOWED_METADATA_TYPES: List = [
     "ComponentSchema",
     "ExpectationSchema",
     "ProtocolSchema",
+    "WorkflowSchema",
 ]
 
 
 class MetadataDocument(BaseModel):
     """
     Represents a JSON-LD metadata document with
-    versioning, timestamps, and soft-deprecation.
+    versioning, timestamps, soft-deprecation, and world-class ontology/semantic features.
 
     Attributes:
         id (UUID): Semantically meaningless unique identifier (UUID4).
@@ -33,6 +34,11 @@ class MetadataDocument(BaseModel):
         owner (Optional[str]): Owner of the metadata document.
         tags (Optional[List[str]]): Tags for filtering and categorization.
         data (Dict[str, Any]): Arbitrary JSON-LD payload.
+        semantic_tags (Optional[List[str]]): Semantic tags or keywords (e.g., SKOS concepts).
+        ontology_mappings (Optional[Dict[str, str]]): Mappings to external ontologies (e.g., skos:exactMatch, rdfs:subClassOf).
+        external_references (Optional[List[str]]): URIs to external standards or documentation.
+        constraints (Optional[List[Dict[str, Any]]]): SHACL-like or custom validation rules.
+        parent_id (Optional[UUID]): Optional parent metamodel for explicit inheritance/subtyping.
         is_deprecated (bool): Whether metadata is deprecated (soft-deleted).
     """
 
@@ -40,7 +46,7 @@ class MetadataDocument(BaseModel):
         default_factory=uuid4,
         description="Semantically meaningless unique identifier (UUID4)",
     )
-    type: Literal[*ALLOWED_METADATA_TYPES] = Field(
+    type: Literal["ComponentSchema", "ExpectationSchema", "ProtocolSchema", "WorkflowSchema"] = Field(
         ..., alias="@type", description="JSON-LD type (restricted)"
     )
     context: dict | str = Field(..., alias="@context", description="JSON-LD context.")
@@ -55,9 +61,15 @@ class MetadataDocument(BaseModel):
     )
     owner: Optional[str] = Field(None, description="Owner of metadata")
     tags: Optional[List[str]] = Field(default_factory=list)
+
     data: Dict[str, Any] = Field(
         default_factory=dict, description="Arbitrary JSON-LD payload."
     )
+    semantic_tags: Optional[List[str]] = Field(default=None, description="Semantic tags or keywords (e.g., SKOS concepts)")
+    ontology_mappings: Optional[Dict[str, str]] = Field(default=None, description="Mappings to external ontologies (e.g., skos:exactMatch, rdfs:subClassOf)")
+    external_references: Optional[List[str]] = Field(default=None, description="URIs to external standards or documentation")
+    constraints: Optional[List[Dict[str, Any]]] = Field(default=None, description="SHACL-like or custom validation rules")
+    parent_id: Optional[UUID] = Field(default=None, description="Optional parent metamodel for explicit inheritance/subtyping")
 
     @model_validator(mode="after")
     def validate_data_size(self) -> "MetadataDocument":
@@ -85,6 +97,23 @@ class MetadataDocument(BaseModel):
                 "data": {"input": {"type": "string"}},
                 "tags": ["component", "v1"],
                 "owner": "alice@example.com",
+                "semantic_tags": ["acquisition", "data"],
+                "ontology_mappings": {"skos:exactMatch": "https://schema.org/Action"},
+                "external_references": ["https://schema.org/Action"],
+                "constraints": [{"property": "input", "pattern": "^string$"}],
+                "parent_id": None
+            },
+            "example_workflow": {
+                "@context": "https://schema.org/",
+                "@type": "WorkflowSchema",
+                "data": {"name": "Test Workflow"},
+                "tags": ["workflow", "v1"],
+                "owner": "bob@example.com",
+                "semantic_tags": ["pipeline", "etl"],
+                "ontology_mappings": {"skos:exactMatch": "https://schema.org/Action"},
+                "external_references": ["https://schema.org/Action"],
+                "constraints": [{"property": "input", "pattern": "^string$"}],
+                "parent_id": None
             }
         },
     )

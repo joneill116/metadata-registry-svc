@@ -7,11 +7,11 @@ from metadata_registry_svc import service
 def test_list_metadata_type_filter():
     doc1 = service.MetadataDocument(
         **{"@type": "ComponentSchema", "@context": {"@vocab": "http://example.com/"}},
-        data={},
+        data={"name": "Test Component"},
     )
     doc2 = service.MetadataDocument(
         **{"@type": "ExpectationSchema", "@context": {"@vocab": "http://example.com/"}},
-        data={},
+        data={"name": "Test Expectation", "expectation_type": "SomeType"},
     )
     service.register_metadata(doc1)
     service.register_metadata(doc2)
@@ -93,7 +93,7 @@ def test_register_metadata_with_all_optional_fields():
 def test_register_metadata_with_minimal_fields():
     doc = MetadataDocument(
         **{"@type": "ComponentSchema", "@context": {"@vocab": "http://example.com/"}},
-        data={},
+        data={"name": "Test Component"},
     )
     out = service.register_metadata(doc)
     assert out.owner is None
@@ -131,9 +131,15 @@ def clear_store():
 
 
 def make_doc(**kwargs):
+    # Always provide a valid 'name' for ComponentSchema
+    data = kwargs.pop('data', None)
+    if data is None:
+        data = {"name": "Test Component"}
+    else:
+        data = {"name": "Test Component", **data}
     return MetadataDocument(
         **{"@type": "ComponentSchema", "@context": {"@vocab": "http://example.com/"}},
-        data={"foo": "bar"},
+        data=data,
         **kwargs,
     )
 
@@ -161,7 +167,8 @@ def test_get_metadata_not_found():
 def test_update_metadata():
     doc = make_doc()
     service.register_metadata(doc)
-    updated = service.update_metadata(doc.id, {"data": {"foo": "baz"}})
+    # Always include required fields in update
+    updated = service.update_metadata(doc.id, {"data": {"name": doc.data["name"], "foo": "baz"}})
     assert updated.data["foo"] == "baz"
     assert updated.version == 2
     assert updated.updated_at > doc.updated_at
@@ -190,7 +197,8 @@ def test_list_metadata():
 def test_get_metadata_versions():
     doc = make_doc()
     service.register_metadata(doc)
-    service.update_metadata(doc.id, {"data": {"foo": "baz"}})
+    # Always include required fields in update
+    service.update_metadata(doc.id, {"data": {"name": doc.data["name"], "foo": "baz"}})
     versions = service.get_metadata_versions(doc.id)
     assert len(versions) == 2
     assert versions[0].version == 1
