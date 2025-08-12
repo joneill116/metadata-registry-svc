@@ -1,3 +1,93 @@
+# Quickstart
+
+1. **Run the API locally:**
+	```sh
+	uvicorn src.metadata_registry_svc.main:app --reload
+	```
+	The API will be available at http://127.0.0.1:8000
+
+2. **Explore the API:**
+	- Swagger UI: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+	- ReDoc: [http://127.0.0.1:8000/redoc](http://127.0.0.1:8000/redoc)
+
+3. **Try a request:**
+	```sh
+	curl -X GET http://127.0.0.1:8000/metadata
+	```
+
+---
+
+# Schemas
+
+## MetadataDocument
+```json
+{
+	"id": "UUID",
+	"@type": "ComponentSchema | ExpectationSchema | ProtocolSchema | WorkflowSchema",
+	"@context": "object | string",
+	"version": 1,
+	"created_at": "datetime",
+	"updated_at": "datetime",
+	"owner": "string | null",
+	"tags": ["string", ...],
+	"data": {"any": "object"},
+	"semantic_tags": ["string", ...],
+	"ontology_mappings": {"string": "string"},
+	"external_references": ["string", ...],
+	"constraints": [{"any": "object"}],
+	"parent_id": "UUID | null",
+	"is_deprecated": false
+}
+```
+
+## Relationship
+```json
+{
+	"id": "UUID",
+	"source_id": "UUID",
+	"target_id": "UUID",
+	"relationship_type": "contains | implements | expects | depends_on | composed_of | extends",
+	"metadata": {"any": "object"}
+}
+```
+
+## RelationshipCreateRequest
+```json
+{
+	"source_id": "UUID",
+	"target_id": "UUID",
+	"relationship_type": "contains | implements | expects | depends_on | composed_of | extends",
+	"metadata": {"any": "object"}
+}
+```
+
+---
+# FAQ & Troubleshooting
+
+**Q: Why do I get a 404 or 400 error when creating a relationship?**
+A: Ensure both source and target UUIDs exist and the relationship type is valid for those entity types.
+
+**Q: How do I authenticate?**
+A: Authentication is stubbed in development. In production, use the `Authorization` header with a bearer token or API key.
+
+**Q: How do I see all available endpoints and schemas?**
+A: Visit `/docs` or `/redoc` on your running API for interactive documentation.
+
+**Q: What is the format for UUIDs?**
+A: All UUIDs must be RFC 4122-compliant (e.g., `123e4567-e89b-12d3-a456-426614174000`).
+
+**Q: How do I report a bug or request a feature?**
+A: Open an issue in the repository or contact the maintainers listed in the README.
+
+---
+# Notes
+
+- All UUIDs must be valid and refer to existing entities.
+- Relationship types are validated for semantic correctness.
+- All responses are JSON; errors follow standard HTTP error codes and messages.
+- For a visual model, see the architecture diagrams in the main README.
+
+---
 
 # Metadata Registry Service API Reference
 
